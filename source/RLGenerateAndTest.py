@@ -1,11 +1,12 @@
-import TileCoder
-import GVF
-import PredictionUnit
+from GVF import *
+from PredictionUnit import *
 import json
 
 class RLGenerateAndTest:
     def __init__(self):
-        self.numberOfGVFS = 20
+        self.maxPosition = 1023
+        self.minPosition = 510
+        self.numberOfGVFs = 20
         self.numberOfRealFeatures = 20
         self.numberOfNoisyFeatures = 20
         self.thresholdGVF = 0.7
@@ -14,18 +15,21 @@ class RLGenerateAndTest:
         self.previousX = False
         
         
-    def initGVFs():
+    def initGVFs(self):
         #initialize a bunch of random GVFs each using a different random bit and random timestep
-        for i in range(self.numberOfGVFS):
+        for i in range(self.numberOfGVFs):
             gvf = self.initRandomGVF()
+            gvf.name = str(i)
             #etc
             
     def initRandomGVF(self):
         vectorLength = self.numberOfRealFeatures + self.numberOfNoisyFeatures
-        gvf = GVF(vectorLength)
+        #def __init__(self, featureVectorLength, alpha, isOffPolicy, name = "GVF name"):
+
+        gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1, isOffPolicy = False)
         return gvf
         
-    def replaceWeakestGVFs(numberToReplace):
+    def replaceWeakestGVFs(self,numberToReplace):
         """
         #TODO
         indexesToReplace = self.predictionUnit.weakestWeights(numberToReplace)
@@ -36,12 +40,30 @@ class RLGenerateAndTest:
         
     def updateGVFs(self, previousX, X):
         for gvf in self.gvfs:
-            gvf.learn(previousX, X)
+            gvf.learn(lastState = previousX, action = False, newState = X)
     
-    def XForObservation(observation):
+    def XForObservation(self, observation):
+        """
+        Moving right
+        {"load": 0.0, "temperature": 35, "timestamp": 1489682716.323766, "voltage": 12.3, "position": 539, "speed": 0}
+        {"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 554, "speed": 136}        
+        """
+
         #todo return the rep
         #create the first self.numberOfRealFeatures and tack on random bits numberOfNoisyFeatures in length
         X = numpy.zeros(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
+        position = observation['position']
+        tileIndex = (position - self.minPosition) / (self.maxPosition - self.minPosition) * self.numberOfRealFeatures / 2
+        isMovingLeft = True
+        if observation['speed'] >=0:
+            isMovingLeft = False
+        if not isMovingLeft:
+            tileIndex = tileIndex + self.numberOfRealFeatures/2
+        
+        X[tileIndex] = 1.0
+        #Make the remaining bits noisy
+        X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
+         
         return X
         
     def thresholdOutputFromGVFs(self, X):
@@ -58,7 +80,7 @@ class RLGenerateAndTest:
         return thresholdPredictions
         
     def runExperiment(self, observationFile = 'OscilateSensorData.json'):
-        open(observationFile) as filePointer:
+        with open(observationFile) as filePointer:
             for line in filePointer:
                 #learn each gvf
                 observation = json.loads(line)

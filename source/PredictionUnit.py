@@ -1,21 +1,21 @@
 import numpy
 
 class PredictionUnit:
-    def__init__(inputLength, alpha = 0.01):
+    def __init__(self, inputLength, alpha = 0.01):
         #initialize all of the weights
         self.inputLength = inputLength
         self.weights = numpy.zeros(inputLength)
         self.age = numpy.zeros(inputLength)
         self.alpha = alpha
     
-    def learn(self, X, y)
+    def learn(self, X, y):
         #y is the actual value to learn from
         tdError = y - self.prediction(X)
         self.weights = self.weights + self.alpha*tdError
         addOneVector = [1.0] * self.inputLength
         self.age = self.age + addOneVector
 
-    def prediction(self, X)
+    def prediction(self, X):
         p = numpy.inner(self.weights, X)
         return
         
