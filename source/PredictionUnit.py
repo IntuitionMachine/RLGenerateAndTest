@@ -11,13 +11,13 @@ class PredictionUnit:
     def learn(self, X, y):
         #y is the actual value to learn from
         tdError = y - self.prediction(X)
-        self.weights = self.weights + self.alpha*tdError
+        self.weights = self.weights + self.alpha*tdError*X
         addOneVector = [1.0] * self.inputLength
         self.age = self.age + addOneVector
 
     def prediction(self, X):
         p = numpy.inner(self.weights, X)
-        return
+        return p
         
     def weakestWeights(self, numberOfWeights):
         indexes = numpy.zeros(numberOfWeights)
