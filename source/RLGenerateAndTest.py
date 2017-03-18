@@ -2,31 +2,72 @@ from GVF import *
 from PredictionUnit import *
 import json
 
+def testLearning(numTests):
+    rl = RLGenerateAndTest()
+    gvf = GVF(featureVectorLength = 40, alpha = 0.01, isOffPolicy = False)
+    cumulantFunction = rl.makeVectorBitCumulantFunction(0)
+    gvf.cumulant = cumulantFunction    
+    
+    for i in range(numTests):
+        xOld = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 554, "speed": 136}) 
+        xNew = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 554, "speed": -136})
+        print("Prediction before: " + str(gvf.prediction(xOld)))
+        gvf.learn(xOld, xNew)
+        
+        xOld2 = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 900, "speed": 136}) 
+        xNew2 = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 1020, "speed": 136}) 
+        gvf.learn(xOld2, xNew2)
+                
+        xOld3 = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 712, "speed": 136}) 
+        xNew3 = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 750, "speed": 136})        
+        gvf.learn(xOld3, xNew3)
+        
+        print("Prediction after learning: " + str(gvf.prediction(xOld)))
+    return gvf
+        
 class RLGenerateAndTest:
     def __init__(self):
         self.maxPosition = 1023
         self.minPosition = 510
-        self.numberOfGVFs = 20
         self.numberOfRealFeatures = 20
-        self.numberOfNoisyFeatures = 20
-        self.thresholdGVF = 0.7
-        self.initGVFs()
+        #self.numberOfNoisyFeatures = 20
+        self.numberOfNoisyFeatures = 0
+        self.numberOfGVFs = self.numberOfRealFeatures + self.numberOfNoisyFeatures        
+        self.gvfThreshold = 0.5
+        self.gvfs = self.initGVFs()
         self.predictionUnit = PredictionUnit(self.numberOfGVFs)
-        self.previousX = False
+        self.previousValue = False
+        self.previousX = numpy.zeros(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
         
         
     def initGVFs(self):
         #initialize a bunch of random GVFs each using a different random bit and random timestep
+        gvfs = []
         for i in range(self.numberOfGVFs):
             gvf = self.initRandomGVF()
-            gvf.name = str(i)
-            #etc
+            #TODO - Remove after testing
+            cumulant = self.makeVectorBitCumulantFunction(i)
+            gvf.cumulant = cumulant
+            gvfs.append(gvf)
+        return gvfs
+            
+    def makeVectorBitCumulantFunction(self, bitIndex):
+        def cumulantFunction(X):
+            if (X[bitIndex] == 1):
+                return 1
+            else:
+                return 0
+        return cumulantFunction
             
     def initRandomGVF(self):
         vectorLength = self.numberOfRealFeatures + self.numberOfNoisyFeatures
-        #def __init__(self, featureVectorLength, alpha, isOffPolicy, name = "GVF name"):
-
+        #TODO swap comments after testing
+        #gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1 / (self.numberOfNoisyFeatures*0.5), isOffPolicy = False)
         gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1, isOffPolicy = False)
+        randomBit = numpy.random.randint(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
+        cumulantFunction = self.makeVectorBitCumulantFunction(randomBit)
+        gvf.cumulant = cumulantFunction
+        gvf.name = "Cumulant bit: " + str(randomBit)
         return gvf
         
     def replaceWeakestGVFs(self,numberToReplace):
@@ -40,7 +81,7 @@ class RLGenerateAndTest:
         
     def updateGVFs(self, previousX, X):
         for gvf in self.gvfs:
-            gvf.learn(lastState = previousX, action = False, newState = X)
+            gvf.learn(lastState = previousX, newState = X)
     
     def XForObservation(self, observation):
         """
@@ -53,31 +94,36 @@ class RLGenerateAndTest:
         #create the first self.numberOfRealFeatures and tack on random bits numberOfNoisyFeatures in length
         X = numpy.zeros(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
         position = observation['position']
-        tileIndex = (position - self.minPosition) / (self.maxPosition - self.minPosition) * self.numberOfRealFeatures / 2
+        tileIndex = int((position - self.minPosition) / (self.maxPosition - self.minPosition) * self.numberOfRealFeatures / 2)
         isMovingLeft = True
         if observation['speed'] >=0:
             isMovingLeft = False
         if not isMovingLeft:
-            tileIndex = tileIndex + self.numberOfRealFeatures/2
+            tileIndex = tileIndex + int(self.numberOfRealFeatures/2)
         
-        X[tileIndex] = 1.0
+        X[tileIndex] = 1
         #Make the remaining bits noisy
-        X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
+        #TODO - Add back in randomizing after testing
+        #X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
          
         return X
         
     def thresholdOutputFromGVFs(self, X):
-        thresholdPredictions = []
-        for gvf in self.gvfs:
+        thresholdOutputs = numpy.zeros(len(self.gvfs))
+        for i in range(len(self.gvfs)):
+            gvf = self.gvfs[i]
+            print("GVF Name: " + str(gvf.name))
+            print("Current State: " + str(X))
             prediction = gvf.prediction(X)
+            print("Prediction: " + str(prediction))
             thresholdPrediction = 0
-            if prediction >= self.thresholdGVF:
+            if prediction >= self.gvfThreshold:
                 thresholdPrediction = 1
             else:
                 thresholdPrediction = 0
-            thresholdPredictions.append(thresholdPrediction)
-            
-        return thresholdPredictions
+            thresholdOutputs[i] = thresholdPrediction
+            print("Threshold Prediction: " + str(thresholdPrediction))
+        return thresholdOutputs
         
     def runExperiment(self, observationFile = 'OscilateSensorData.json'):
         with open(observationFile) as filePointer:
@@ -87,17 +133,15 @@ class RLGenerateAndTest:
                 X = self.XForObservation(observation)
                 y = observation["speed"]
                 
-                if self.previousX:
+                if self.previousValue:
                     self.updateGVFs(self.previousX, X)
-
-                
-                #Have the prediction Unit learn
-                predictionUnitInput = self.thresholdOutputFromGVFs(previousX)
-                self.predictionUnit.learn(predictionUnitInput, y)
-                
-                #Remove the bad performing GVFs
-                self.replaceWeakestGVFs()
-
+                    #Have the prediction Unit learn
+                    predictionUnitInput = self.thresholdOutputFromGVFs(self.previousX)
+                    self.predictionUnit.learn(predictionUnitInput, y)
+                    #Remove the bad performing GVFs
+                    self.replaceWeakestGVFs(1)
+                else:
+                    self.previousValue= True
                 self.previousX = X                
 
                 

@@ -1,6 +1,7 @@
 import numpy
 
 class GVF:
+    
     def __init__(self, featureVectorLength, alpha, isOffPolicy, name = "GVF name"):
         #set up lambda, gamma, etc.
         self.name = name
@@ -22,24 +23,13 @@ class GVF:
     def cumulant(self, state):
         return 1
 
-    def policy(self, state):
-        #To be overwritten based on GVF's intended behavior if off policy. Otherwise 1 means on policy
-        return 1
-
     def lam(self, state):
         return 0.90
 
-    def learn(self, lastState, action, newState):
-        if self.isOffPolicy:
-            self.gtdLearn(lastState, action, newState)
-        else:
-            self.tdLearn(lastState, newState)
+    def learn(self, lastState, newState):
+        self.tdLearn(lastState, newState)
 
     def tdLearn(self, lastState, newState):
-        print("!!!!! LEARN  !!!!!!!")
-        print("GVF name: " + str(self.name))
-        pred = self.prediction(lastState)
-        print("--- Prediction for " + str(lastState) + ", " + str(lastState) + " before learning: " + str(pred))
 
         zNext = self.cumulant(newState)
         #print("Cumulant: " + str(zNext))
@@ -57,7 +47,6 @@ class GVF:
         self.weights = self.weights + self.alpha * tdError * self.eligibilityTrace
 
         pred = self.prediction(lastState)
-        print("Prediction for " + str(lastState)  + " after learning: " + str(pred))
 
         self.gammaLast = gammaNext
 

@@ -9,8 +9,13 @@ class PredictionUnit:
         self.alpha = alpha
     
     def learn(self, X, y):
+        print("PredictionUnit.learn()")
         #y is the actual value to learn from
+        #print("y: " + str(y))
+        #print("X: " + str(X))
+        #print("self.weights: " + str(self.weights))
         tdError = y - self.prediction(X)
+        #print("tdError: " + str(tdError))
         self.weights = self.weights + self.alpha*tdError*X
         addOneVector = [1.0] * self.inputLength
         self.age = self.age + addOneVector
