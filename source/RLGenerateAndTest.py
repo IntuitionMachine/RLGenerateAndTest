@@ -31,9 +31,10 @@ class RLGenerateAndTest:
         self.maxPosition = 1023.0
         self.minPosition = 510.0
         self.numberOfRealFeatures = 20
-        #self.numberOfNoisyFeatures = 20
-        self.numberOfNoisyFeatures = 0
-        self.numberOfGVFs = self.numberOfRealFeatures + self.numberOfNoisyFeatures        
+        self.numberOfNoisyFeatures = 20
+        #self.numberOfNoisyFeatures = 0
+        #self.numberOfGVFs = self.numberOfRealFeatures + self.numberOfNoisyFeatures
+        self.numberOfGVFs = self.numberOfRealFeatures
         self.gvfThreshold = 0.5
         self.gvfs = self.initGVFs()
         self.predictionUnit = PredictionUnit(self.numberOfGVFs)
@@ -47,10 +48,12 @@ class RLGenerateAndTest:
         for i in range(self.numberOfGVFs):
             gvf = self.initRandomGVF()
 
+            """
             #TODO - Remove after testing
             cumulant = self.makeVectorBitCumulantFunction(i)
             gvf.cumulant = cumulant
             gvf.name = "Predict bit: " + str(i)
+            """
 
             gvfs.append(gvf)
         return gvfs
@@ -66,12 +69,15 @@ class RLGenerateAndTest:
     def initRandomGVF(self):
         vectorLength = self.numberOfRealFeatures + self.numberOfNoisyFeatures
         #TODO swap comments after testing
-        #gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1 / (self.numberOfNoisyFeatures*0.5), isOffPolicy = False)
-        gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1, isOffPolicy = False)
+        gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1 / (self.numberOfNoisyFeatures*0.5), isOffPolicy = False)
+
+        #gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1, isOffPolicy = False)
+
         randomBit = numpy.random.randint(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
         cumulantFunction = self.makeVectorBitCumulantFunction(randomBit)
         gvf.cumulant = cumulantFunction
         gvf.name = "Cumulant bit: " + str(randomBit)
+
         return gvf
         
     def replaceWeakestGVFs(self,numberToReplace):
@@ -109,7 +115,7 @@ class RLGenerateAndTest:
         X[tileIndex] = 1
         #Make the remaining bits noisy
         #TODO - Add back in randomizing after testing
-        #X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
+        X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
          
         return X
         
@@ -135,7 +141,7 @@ class RLGenerateAndTest:
             sampleNumber = 0
             for line in filePointer:
                 sampleNumber = sampleNumber + 1
-                if sampleNumber % 100 == 0:
+                if sampleNumber % 1000 == 0:
                     print("Learning " + str(1) + " ...")
 
                 #learn each gvf
