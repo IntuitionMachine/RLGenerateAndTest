@@ -12,7 +12,7 @@ def testLearning(numTests):
     for i in range(numTests):
         xOld = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 554, "speed": 136}) 
         xNew = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 554, "speed": -136})
-        print("Prediction before: " + str(gvf.prediction(xOld)))
+        #print("Prediction before: " + str(gvf.prediction(xOld)))
         gvf.learn(xOld, xNew)
         
         xOld2 = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 900, "speed": 136}) 
@@ -23,7 +23,7 @@ def testLearning(numTests):
         xNew3 = rl.XForObservation({"load": -0.046875, "temperature": 35, "timestamp": 1489682716.357122, "voltage": 12.3, "position": 750, "speed": 136})        
         gvf.learn(xOld3, xNew3)
         
-        print("Prediction after learning: " + str(gvf.prediction(xOld)))
+        #print("Prediction after learning: " + str(gvf.prediction(xOld)))
     return gvf
         
 class RLGenerateAndTest:
@@ -35,7 +35,7 @@ class RLGenerateAndTest:
         #self.numberOfNoisyFeatures = 0
         #self.numberOfGVFs = self.numberOfRealFeatures + self.numberOfNoisyFeatures
         self.numberOfGVFs = self.numberOfRealFeatures
-        self.gvfThreshold = 0.5
+        self.gvfThreshold = 0.75
         self.gvfs = self.initGVFs()
         self.predictionUnit = PredictionUnit(self.numberOfGVFs)
         self.previousValue = False
@@ -123,31 +123,31 @@ class RLGenerateAndTest:
         thresholdOutputs = numpy.zeros(len(self.gvfs))
         for i in range(len(self.gvfs)):
             gvf = self.gvfs[i]
-            print("GVF Name: " + str(gvf.name))
-            print("Current State: " + str(X))
+            #print("GVF Name: " + str(gvf.name))
+            #print("Current State: " + str(X))
             prediction = gvf.prediction(X)
-            print("Prediction: " + str(prediction))
+            #print("Prediction: " + str(prediction))
             thresholdPrediction = 0
             if prediction >= self.gvfThreshold:
                 thresholdPrediction = 1
             else:
                 thresholdPrediction = 0
             thresholdOutputs[i] = thresholdPrediction
-            print("Threshold Prediction: " + str(thresholdPrediction))
+            #print("Threshold Prediction: " + str(thresholdPrediction))
         return thresholdOutputs
         
-    def runExperiment(self, observationFile = 'OscilateSensorData.json'):
+    def runExperiment(self, observationFile = 'OscilateSensorDataX2.json'):
         with open(observationFile) as filePointer:
             sampleNumber = 0
             for line in filePointer:
                 sampleNumber = sampleNumber + 1
-                if sampleNumber % 1000 == 0:
+                if sampleNumber % 13000 == 0:
                     print("Learning " + str(1) + " ...")
 
                 #learn each gvf
                 observation = json.loads(line)
                 X = self.XForObservation(observation)
-                print(X)
+                #print(X)
                 y = observation["speed"]
                 
                 if self.previousValue:

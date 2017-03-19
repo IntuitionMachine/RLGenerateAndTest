@@ -20,8 +20,8 @@
       <file leaf-file-name="PredictionUnit.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/PredictionUnit.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="45">
-              <caret line="3" column="48" lean-forward="false" selection-start-line="3" selection-start-column="48" selection-end-line="3" selection-end-column="48" />
+            <state relative-caret-position="210">
+              <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -30,8 +30,8 @@
       <file leaf-file-name="RLGenerateAndTest.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/source/RLGenerateAndTest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
-              <caret line="144" column="0" lean-forward="false" selection-start-line="144" selection-start-column="0" selection-end-line="144" selection-end-column="0" />
+            <state relative-caret-position="231">
+              <caret line="156" column="0" lean-forward="false" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -39,11 +39,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="OscilateSensorData.json" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/OscilateSensorData.json">
+      <file leaf-file-name="OscilateSensorDataX2.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/source/OscilateSensorDataX2.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-63493">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+            <state relative-caret-position="-34">
+              <caret line="13384" column="10" lean-forward="false" selection-start-line="13384" selection-start-column="10" selection-end-line="13384" selection-end-column="10" />
               <folding />
             </state>
           </provider>
@@ -52,8 +52,8 @@
       <file leaf-file-name="GVF.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/GVF.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="338">
-              <caret line="41" column="0" lean-forward="false" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
+            <state relative-caret-position="184">
+              <caret line="53" column="0" lean-forward="false" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -64,6 +64,8 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>random</find>
+      <find>print(</find>
+      <find>print</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -74,6 +76,7 @@
       <list>
         <option value="$PROJECT_DIR$/source/OscilateSensorData.json" />
         <option value="$PROJECT_DIR$/source/PredictionUnit.py" />
+        <option value="$PROJECT_DIR$/source/OscilateSensorDataX2.json" />
         <option value="$PROJECT_DIR$/source/RLGenerateAndTest.py" />
       </list>
     </option>
@@ -349,14 +352,19 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/source/RLGenerateAndTest.py</url>
-          <line>144</line>
-          <option name="timeStamp" value="7" />
+          <line>142</line>
+          <option name="timeStamp" value="19" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/source/RLGenerateAndTest.py</url>
+          <line>150</line>
+          <option name="timeStamp" value="20" />
         </line-breakpoint>
       </breakpoints>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
-      <option name="time" value="8" />
+      <option name="time" value="21" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -369,34 +377,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/PredictionUnit.py">
+    <entry file="file://$PROJECT_DIR$/source/OscilateSensorData.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="45">
-          <caret line="3" column="48" lean-forward="false" selection-start-line="3" selection-start-column="48" selection-end-line="3" selection-end-column="48" />
+        <state relative-caret-position="-3169">
+          <caret line="4241" column="117" lean-forward="true" selection-start-line="4241" selection-start-column="117" selection-end-line="4241" selection-end-column="117" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/OscilateSensorData.json">
+    <entry file="file://$PROJECT_DIR$/source/OscilateSensorDataX2.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-63493">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+        <state relative-caret-position="-34">
+          <caret line="13384" column="10" lean-forward="false" selection-start-line="13384" selection-start-column="10" selection-end-line="13384" selection-end-column="10" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/GVF.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="338">
-          <caret line="41" column="0" lean-forward="false" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
+        <state relative-caret-position="184">
+          <caret line="53" column="0" lean-forward="false" selection-start-line="53" selection-start-column="0" selection-end-line="53" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/PredictionUnit.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/RLGenerateAndTest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
-          <caret line="144" column="0" lean-forward="false" selection-start-line="144" selection-start-column="0" selection-end-line="144" selection-end-column="0" />
+        <state relative-caret-position="231">
+          <caret line="156" column="0" lean-forward="false" selection-start-line="156" selection-start-column="0" selection-end-line="156" selection-end-column="0" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
           </folding>
