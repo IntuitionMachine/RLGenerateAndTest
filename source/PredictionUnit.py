@@ -1,7 +1,7 @@
 import numpy
 
 class PredictionUnit:
-    def __init__(self, inputLength, alpha = 0.01):
+    def __init__(self, inputLength, alpha = 0.05):
         #initialize all of the weights
         self.inputLength = inputLength
         self.weights = numpy.zeros(inputLength)

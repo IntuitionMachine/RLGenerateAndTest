@@ -2,6 +2,7 @@ from GVF import *
 from PredictionUnit import *
 import json
 
+
 def testLearning(numTests):
     rl = RLGenerateAndTest()
     gvf = GVF(featureVectorLength = 40, alpha = 0.01, isOffPolicy = False)
@@ -27,8 +28,8 @@ def testLearning(numTests):
         
 class RLGenerateAndTest:
     def __init__(self):
-        self.maxPosition = 1023
-        self.minPosition = 510
+        self.maxPosition = 1023.0
+        self.minPosition = 510.0
         self.numberOfRealFeatures = 20
         #self.numberOfNoisyFeatures = 20
         self.numberOfNoisyFeatures = 0
@@ -45,9 +46,12 @@ class RLGenerateAndTest:
         gvfs = []
         for i in range(self.numberOfGVFs):
             gvf = self.initRandomGVF()
+
             #TODO - Remove after testing
             cumulant = self.makeVectorBitCumulantFunction(i)
             gvf.cumulant = cumulant
+            gvf.name = "Predict bit: " + str(i)
+
             gvfs.append(gvf)
         return gvfs
             
@@ -94,7 +98,8 @@ class RLGenerateAndTest:
         #create the first self.numberOfRealFeatures and tack on random bits numberOfNoisyFeatures in length
         X = numpy.zeros(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
         position = observation['position']
-        tileIndex = int((position - self.minPosition) / (self.maxPosition - self.minPosition) * self.numberOfRealFeatures / 2)
+
+        tileIndex = int(self.numberOfRealFeatures * 0.5 * ((position - self.minPosition) / (self.maxPosition - self.minPosition)))
         isMovingLeft = True
         if observation['speed'] >=0:
             isMovingLeft = False
@@ -127,10 +132,16 @@ class RLGenerateAndTest:
         
     def runExperiment(self, observationFile = 'OscilateSensorData.json'):
         with open(observationFile) as filePointer:
+            sampleNumber = 0
             for line in filePointer:
+                sampleNumber = sampleNumber + 1
+                if sampleNumber % 100 == 0:
+                    print("Learning " + str(1) + " ...")
+
                 #learn each gvf
                 observation = json.loads(line)
                 X = self.XForObservation(observation)
+                print(X)
                 y = observation["speed"]
                 
                 if self.previousValue:
@@ -142,9 +153,14 @@ class RLGenerateAndTest:
                     self.replaceWeakestGVFs(1)
                 else:
                     self.previousValue= True
-                self.previousX = X                
+                self.previousX = X
 
-                
+
+
+rl = RLGenerateAndTest()
+rl.runExperiment()
+testLearning(10)
+
                 
                 
         
