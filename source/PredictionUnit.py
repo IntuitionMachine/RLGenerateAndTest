@@ -9,7 +9,7 @@ class PredictionUnit:
         self.alpha = alpha
     
     def learn(self, X, y):
-        print("PredictionUnit.learn()")
+        #print("PredictionUnit.learn()")
         #y is the actual value to learn from
         #print("y: " + str(y))
         #print("X: " + str(X))

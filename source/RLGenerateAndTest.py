@@ -32,10 +32,11 @@ class RLGenerateAndTest:
         self.minPosition = 510.0
         self.numberOfRealFeatures = 20
         self.numberOfNoisyFeatures = 20
+        self.candidateBits = list(range(self.numberOfNoisyFeatures + self.numberOfRealFeatures))
         #self.numberOfNoisyFeatures = 0
         #self.numberOfGVFs = self.numberOfRealFeatures + self.numberOfNoisyFeatures
         self.numberOfGVFs = self.numberOfRealFeatures
-        self.gvfThreshold = 0.75
+        self.gvfThreshold = 0.65
         self.gvfs = self.initGVFs()
         self.predictionUnit = PredictionUnit(self.numberOfGVFs)
         self.previousValue = False
@@ -47,14 +48,6 @@ class RLGenerateAndTest:
         gvfs = []
         for i in range(self.numberOfGVFs):
             gvf = self.initRandomGVF()
-
-            """
-            #TODO - Remove after testing
-            cumulant = self.makeVectorBitCumulantFunction(i)
-            gvf.cumulant = cumulant
-            gvf.name = "Predict bit: " + str(i)
-            """
-
             gvfs.append(gvf)
         return gvfs
             
@@ -65,15 +58,28 @@ class RLGenerateAndTest:
             else:
                 return 0
         return cumulantFunction
-            
-    def initRandomGVF(self):
+
+    def randomBitIndex(self, excludeBitsTried = False):
+        randomBit = 0
+        if not excludeBitsTried:
+            randomBit = numpy.random.randint(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
+        else:
+            randomBit = random.choice(self.candidateBits)
+
+        return randomBit
+        #exclusions is an array of indexes to not choose from
+
+
+    def initRandomGVF(self, excludeBitsTried = False):
         vectorLength = self.numberOfRealFeatures + self.numberOfNoisyFeatures
         #TODO swap comments after testing
         gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1 / (self.numberOfNoisyFeatures*0.5), isOffPolicy = False)
 
         #gvf = GVF(featureVectorLength = vectorLength, alpha = 0.1, isOffPolicy = False)
 
-        randomBit = numpy.random.randint(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
+        randomBit = self.randomBitIndex(excludeBitsTried)
+        if randomBit in self.candidateBits:
+            self.candidateBits.remove(randomBit)
         cumulantFunction = self.makeVectorBitCumulantFunction(randomBit)
         gvf.cumulant = cumulantFunction
         gvf.name = "Cumulant bit: " + str(randomBit)
@@ -115,8 +121,9 @@ class RLGenerateAndTest:
         X[tileIndex] = 1
         #Make the remaining bits noisy
         #TODO - Add back in randomizing after testing
-        X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
-         
+        #X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
+        #70% chance of being a 0
+        X[self.numberOfRealFeatures:] = numpy.random.choice(a=[0, 1], p=[0.7, 0.3])
         return X
         
     def thresholdOutputFromGVFs(self, X):
@@ -153,8 +160,23 @@ class RLGenerateAndTest:
                 if self.previousValue:
                     self.updateGVFs(self.previousX, X)
                     #Have the prediction Unit learn
-                    predictionUnitInput = self.thresholdOutputFromGVFs(self.previousX)
+                    print("")
+                    activeBit = 0
+                    for bit in range(20):
+                        if X[bit]==1:
+                            activeBit = bit
+
+                    print("============== Observation " + str(sampleNumber) + " ===================")
+                    #print("X: " + str(X) + ", active bit: " + str(activeBit) +  ", y: " + str(y))
+                    print("Active bit: " + str(activeBit) + ", y: " + str(y))
+                    predictionUnitInput = self.thresholdOutputFromGVFs(X)
                     self.predictionUnit.learn(predictionUnitInput, y)
+                    predictionAfter = self.predictionUnit.prediction(predictionUnitInput)
+                    print("Prediction: " + str(predictionAfter))
+                    #print("Prediction input: " + str(predictionUnitInput))
+                    #for gvf in self.gvfs:
+                    #    print(" - name: " + str(gvf.name))
+                    #    print(" - prediction: " + str(gvf.prediction(X)))
                     #Remove the bad performing GVFs
                     self.replaceWeakestGVFs(1)
                 else:
@@ -165,7 +187,8 @@ class RLGenerateAndTest:
 
 rl = RLGenerateAndTest()
 rl.runExperiment()
-testLearning(10)
+
+#testLearning(10)
 
                 
                 
