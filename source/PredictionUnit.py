@@ -25,10 +25,10 @@ class PredictionUnit:
         return p
         
     def weakestWeights(self, numberOfWeights):
-        indexes = numpy.argpartition(self.weights, numberOfWeights)
+        indexes = numpy.argpartition(numpy.abs(self.weights), numberOfWeights)
         return indexes[:numberOfWeights]
         
-    def resetWeight(index):
+    def resetWeight(self, index):
         self.weights[index] = 0.0
         self.age[index] = 0.0
         

@@ -47,7 +47,7 @@ class RLGenerateAndTest:
         #initialize a bunch of random GVFs each using a different random bit and random timestep
         gvfs = []
         for i in range(self.numberOfGVFs):
-            gvf = self.initRandomGVF()
+            gvf = self.initRandomGVF(excludeBitsTried = True)
             gvfs.append(gvf)
         return gvfs
             
@@ -64,7 +64,10 @@ class RLGenerateAndTest:
         if not excludeBitsTried:
             randomBit = numpy.random.randint(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
         else:
-            randomBit = random.choice(self.candidateBits)
+            #Naive strategy. If there are no candidate bits left to choose from, repopulate them all
+            if (len(self.candidateBits) == 0):
+                self.candidateBits = list(range(self.numberOfNoisyFeatures + self.numberOfRealFeatures))
+            randomBit = numpy.random.choice(self.candidateBits)
 
         return randomBit
         #exclusions is an array of indexes to not choose from
@@ -87,13 +90,11 @@ class RLGenerateAndTest:
         return gvf
         
     def replaceWeakestGVFs(self,numberToReplace):
-        """
-        #TODO
+
         indexesToReplace = self.predictionUnit.weakestWeights(numberToReplace)
         for index in indexesToReplace:
             self.predictionUnit.resetWeight(index)
-            self.gvf[index] = self.initRandomGVF()
-        """
+            self.gvfs[index] = self.initRandomGVF(excludeBitsTried = True)
         
     def updateGVFs(self, previousX, X):
         for gvf in self.gvfs:
@@ -144,45 +145,50 @@ class RLGenerateAndTest:
         return thresholdOutputs
         
     def runExperiment(self, observationFile = 'OscilateSensorDataX2.json'):
-        with open(observationFile) as filePointer:
-            sampleNumber = 0
-            for line in filePointer:
-                sampleNumber = sampleNumber + 1
-                if sampleNumber % 13000 == 0:
-                    print("Learning " + str(1) + " ...")
+        for i in range(30):
+            print("+++++++ Run number "+ str(i) + " +++++++")
+            with open(observationFile) as filePointer:
+                sampleNumber = 0
+                for line in filePointer:
+                    sampleNumber = sampleNumber + 1
+                    if sampleNumber % 13000 == 0:
+                        print("Learning " + str(1) + " ...")
 
-                #learn each gvf
-                observation = json.loads(line)
-                X = self.XForObservation(observation)
-                #print(X)
-                y = observation["speed"]
-                
-                if self.previousValue:
-                    self.updateGVFs(self.previousX, X)
-                    #Have the prediction Unit learn
-                    print("")
-                    activeBit = 0
-                    for bit in range(20):
-                        if X[bit]==1:
-                            activeBit = bit
+                    #learn each gvf
+                    observation = json.loads(line)
+                    X = self.XForObservation(observation)
+                    #print(X)
+                    y = observation["speed"]
 
-                    print("============== Observation " + str(sampleNumber) + " ===================")
-                    #print("X: " + str(X) + ", active bit: " + str(activeBit) +  ", y: " + str(y))
-                    print("Active bit: " + str(activeBit) + ", y: " + str(y))
-                    predictionUnitInput = self.thresholdOutputFromGVFs(X)
-                    self.predictionUnit.learn(predictionUnitInput, y)
-                    predictionAfter = self.predictionUnit.prediction(predictionUnitInput)
-                    print("Prediction: " + str(predictionAfter))
-                    #print("Prediction input: " + str(predictionUnitInput))
-                    #for gvf in self.gvfs:
-                    #    print(" - name: " + str(gvf.name))
-                    #    print(" - prediction: " + str(gvf.prediction(X)))
-                    #Remove the bad performing GVFs
-                    self.replaceWeakestGVFs(1)
-                else:
-                    self.previousValue= True
-                self.previousX = X
+                    if self.previousValue:
+                        self.updateGVFs(self.previousX, X)
+                        #Have the prediction Unit learn
+                        print("")
+                        activeBit = 0
+                        for bit in range(20):
+                            if X[bit]==1:
+                                activeBit = bit
 
+                        print("============== Observation: " + str(sampleNumber) + ", run: " + str(i) + " ===================")
+                        #print("X: " + str(X) + ", active bit: " + str(activeBit) +  ", y: " + str(y))
+                        print("Active bit: " + str(activeBit) + ", y: " + str(y))
+                        predictionUnitInput = self.thresholdOutputFromGVFs(X)
+                        self.predictionUnit.learn(predictionUnitInput, y)
+                        predictionAfter = self.predictionUnit.prediction(predictionUnitInput)
+                        print("Prediction: " + str(predictionAfter))
+                        #print("Prediction input: " + str(predictionUnitInput))
+                        #for gvf in self.gvfs:
+                        #    print(" - name: " + str(gvf.name))
+                        #    print(" - prediction: " + str(gvf.prediction(X)))
+                        #Remove the bad performing GVFs
+                    else:
+                        self.previousValue= True
+                    self.previousX = X
+            numberToReplace = 1
+            if (i == 0):
+                numberToReplace = 5
+            self.replaceWeakestGVFs(numberToReplace)
+        print("Done")
 
 
 rl = RLGenerateAndTest()
