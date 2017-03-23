@@ -50,10 +50,11 @@ class GVF:
         tdError = zNext + gammaNext * numpy.inner(newState, self.weights) - numpy.inner(lastState, self.weights)
         #print("tdError: " + str(tdError))
         self.weights = self.weights + self.alpha * tdError * self.eligibilityTrace
-        pred = self.prediction(lastState)
+        #pred = self.prediction(lastState)
         self.gammaLast = gammaNext
 
         #update Rupee
+        """
         self.RUPEEweights = self.RUPEEweights + self.alphaRUPEE * (tdError * self.eligibilityTrace - (numpy.inner(self.RUPEEweights, lastState)) * lastState)
         #print("tao before: " + str(self.tao))
         self.taoRUPEE = (1.0 - self.betaNotRUPEE) * self.taoRUPEE + self.betaNotRUPEE
@@ -61,7 +62,7 @@ class GVF:
         betaRUPEE = self.betaNotRUPEE / self.taoRUPEE
         #print("beta: " + str(beta))
         self.movingtdEligErrorAverage =(1.0 - betaRUPEE) * self.movingtdEligErrorAverage + betaRUPEE * tdError * self.eligibilityTrace
-
+        """
     def prediction(self, stateRepresentation):
         return numpy.inner(self.weights, stateRepresentation)
 

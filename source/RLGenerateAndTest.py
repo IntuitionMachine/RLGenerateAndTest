@@ -1,6 +1,8 @@
 from GVF import *
 from PredictionUnit import *
+from SensorDataFactory import *
 import json
+import matplotlib.pyplot as plt
 
 
 def testLearning(numTests):
@@ -26,8 +28,9 @@ def testLearning(numTests):
         #print("Prediction after learning: " + str(gvf.prediction(xOld)))
     return gvf
         
-class RLGenerateAndTestGVF:
+class RLGenerateAndTest:
     def __init__(self):
+        self.observationFactory = SensorDataFactory()
         self.maxPosition = 1023.0
         self.minPosition = 510.0
         self.numberOfRealFeatures = 20
@@ -42,7 +45,13 @@ class RLGenerateAndTestGVF:
         self.previousValue = False
         self.previousX = numpy.zeros(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
         
-        
+    def resetForRun(self):
+        self.gvfs = self.initGVFs()
+        self.predictionUnit = PredictionUnit(self.numberOfGVFs)
+        self.previousValue = False
+        self.previousX = numpy.zeros(self.numberOfRealFeatures + self.numberOfNoisyFeatures)
+        self.candidateBits = list(range(self.numberOfNoisyFeatures + self.numberOfRealFeatures))
+
     def initGVFs(self):
         #initialize a bunch of random GVFs each using a different random bit and random timestep
         gvfs = []
@@ -90,11 +99,17 @@ class RLGenerateAndTestGVF:
         return gvf
         
     def replaceWeakestGVFs(self,numberToReplace):
-
-        indexesToReplace = self.predictionUnit.weakestWeights(numberToReplace)
-        for index in indexesToReplace:
-            self.predictionUnit.resetWeight(index)
-            self.gvfs[index] = self.initRandomGVF(excludeBitsTried = True)
+        if len(self.candidateBits) == 0:
+            print("---- Not replacing any GVFS since all options exhausted")
+        else:
+            indexesToReplace = self.predictionUnit.weakestWeights(numberToReplace)
+            for index in indexesToReplace:
+                print("---- Replacing " + self.gvfs[index].name  +" ----")
+            print("---- Replacing: ")
+            for index in indexesToReplace:
+                self.predictionUnit.resetWeight(index)
+                self.gvfs[index] = self.initRandomGVF(excludeBitsTried = True)
+                print("---- New GVF: " + self.gvfs[index].name)
         
     def updateGVFs(self, previousX, X):
         for gvf in self.gvfs:
@@ -143,8 +158,74 @@ class RLGenerateAndTestGVF:
             thresholdOutputs[i] = thresholdPrediction
             #print("Threshold Prediction: " + str(thresholdPrediction))
         return thresholdOutputs
-        
-    def runExperiment(self, observationFile = 'OscilateSensorDataX2.json'):
+
+    def runExperiment(self, numberOfRuns=1, numberOfObservations=10000):
+        averageObservationErrors = numpy.zeros(numberOfObservations) # -1 because there's no error after the first obs.
+        observationErrors = numpy.zeros(numberOfObservations)
+        for run in range(numberOfRuns):
+            print("+++++++++ Run number " + str(run) + "++++++++++++")
+            observationErrors = numpy.zeros(numberOfObservations)
+            cullingCount = 0
+            for observationNumber in range(numberOfObservations):
+                if (observationNumber % 5000 == 0):
+                    print("======== Run " + str(run) + ", Observation " + str(observationNumber) + " =======")
+                observation = self.observationFactory.getObservation()
+                X = self.XForObservation(observation)
+                # print(X)
+                y = observation["speed"]
+
+                if self.previousValue:
+                    self.updateGVFs(self.previousX, X)
+                    # Have the prediction Unit learn
+                    predictionUnitInput = self.thresholdOutputFromGVFs(X)
+                    self.predictionUnit.learn(predictionUnitInput, y)
+                    prediction = self.predictionUnit.prediction(predictionUnitInput)
+                    error = y - prediction
+
+                    observationErrors[observationNumber] = error
+                    """
+                    if X[4]==1:
+                        observationErrors[observationNumber] = error
+                    else:
+                        observationErrors[observationNumber] = 0
+                    """
+
+                else:
+                    self.previousValue = True
+                self.previousX = X
+
+                #Cull and replace
+                numberToReplace = 1
+                if((observationNumber+1) % 5000  == 0):
+                    if cullingCount == 0:
+                        numberToReplace = 4
+                    self.replaceWeakestGVFs(numberToReplace)
+                    #print("!! Replacing " + str(numberToReplace) + " GVFs")
+                    cullingCount = cullingCount + 1
+
+
+            averageObservationErrors = averageObservationErrors + (1 / (run + 1)) * observationErrors
+            self.resetForRun()
+
+        return averageObservationErrors
+
+    def plotAverageError(self, averageErrors):
+        fig = plt.figure(1)
+        fig.suptitle('Prediction Error', fontsize=14, fontweight='bold')
+        ax = fig.add_subplot(211)
+        titleLabel = "Generate And Test"
+        ax.set_title(titleLabel)
+        ax.set_xlabel('Timestep')
+        ax.set_ylabel('Average Error')
+
+        ax.plot(averageErrors)
+
+        #ax.plot(optimalActionsNonStationary)
+
+        plt.show()
+
+
+    def runOldExperiment(self, observationFile = 'OscilateSensorDataLarge.json'):
         for i in range(30):
             print("+++++++ Run number "+ str(i) + " +++++++")
             with open(observationFile) as filePointer:
@@ -165,12 +246,16 @@ class RLGenerateAndTestGVF:
                         self.updateGVFs(self.previousX, X)
                         #Have the prediction Unit learn
                         #print("")
+                        """
                         activeBit = 0
                         for bit in range(20):
                             if X[bit]==1:
                                 activeBit = bit
+                        """
+                        """
                         for gvf in self.gvfs:
                             print("Rupee: " + str(gvf.rupee()))
+                        """
                         #print("============== Observation: " + str(sampleNumber) + ", run: " + str(i) + " ===================")
                         #print("X: " + str(X) + ", active bit: " + str(activeBit) +  ", y: " + str(y))
                         #print("Active bit: " + str(activeBit) + ", y: " + str(y))
@@ -199,9 +284,11 @@ class RLGenerateAndTestGVF:
             self.replaceWeakestGVFs(numberToReplace)
         print("Done")
 
-
-rl = RLGenerateAndTestGVF()
-rl.runExperiment()
+"""
+rl = RLGenerateAndTest()
+avgErrors = rl.runExperiment(numberOfRuns = 2, numberOfObservations = 100000)
+rl.plotAverageError(avgErrors)
+"""
 
 #testLearning(10)
 
