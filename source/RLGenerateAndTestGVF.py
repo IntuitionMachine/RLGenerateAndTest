@@ -26,7 +26,7 @@ def testLearning(numTests):
         #print("Prediction after learning: " + str(gvf.prediction(xOld)))
     return gvf
         
-class RLGenerateAndTest:
+class RLGenerateAndTestGVF:
     def __init__(self):
         self.maxPosition = 1023.0
         self.minPosition = 510.0
@@ -99,7 +99,7 @@ class RLGenerateAndTest:
     def updateGVFs(self, previousX, X):
         for gvf in self.gvfs:
             gvf.learn(lastState = previousX, newState = X)
-    
+
     def XForObservation(self, observation):
         """
         Moving right
@@ -124,7 +124,7 @@ class RLGenerateAndTest:
         #TODO - Add back in randomizing after testing
         #X[self.numberOfRealFeatures:] = numpy.random.randint(2, size = 20)
         #70% chance of being a 0
-        X[self.numberOfRealFeatures:] = numpy.random.choice(a=[0, 1], p=[0.7, 0.3])
+        X[self.numberOfRealFeatures:] = numpy.random.choice(a=[0, 1], p=[0.8, 0.2], size = self.numberOfNoisyFeatures)
         return X
         
     def thresholdOutputFromGVFs(self, X):
@@ -153,7 +153,8 @@ class RLGenerateAndTest:
                     sampleNumber = sampleNumber + 1
                     if sampleNumber % 13000 == 0:
                         print("Learning " + str(1) + " ...")
-
+                    if (sampleNumber %100 == 0):
+                        print("100")
                     #learn each gvf
                     observation = json.loads(line)
                     X = self.XForObservation(observation)
@@ -163,19 +164,27 @@ class RLGenerateAndTest:
                     if self.previousValue:
                         self.updateGVFs(self.previousX, X)
                         #Have the prediction Unit learn
-                        print("")
+                        #print("")
                         activeBit = 0
                         for bit in range(20):
                             if X[bit]==1:
                                 activeBit = bit
-
-                        print("============== Observation: " + str(sampleNumber) + ", run: " + str(i) + " ===================")
+                        for gvf in self.gvfs:
+                            print("Rupee: " + str(gvf.rupee()))
+                        #print("============== Observation: " + str(sampleNumber) + ", run: " + str(i) + " ===================")
                         #print("X: " + str(X) + ", active bit: " + str(activeBit) +  ", y: " + str(y))
-                        print("Active bit: " + str(activeBit) + ", y: " + str(y))
+                        #print("Active bit: " + str(activeBit) + ", y: " + str(y))
                         predictionUnitInput = self.thresholdOutputFromGVFs(X)
+                        #if 1 in predictionUnitInput:
+                        if (1 in predictionUnitInput):
+                            print("Found an activation")
+                        if (numpy.count_nonzero(predictionUnitInput) > 1):
+                            print("============== Observation: " + str(sampleNumber) + ", run: " + str(
+                                i) + " ===================")
+                            print(predictionUnitInput)
                         self.predictionUnit.learn(predictionUnitInput, y)
                         predictionAfter = self.predictionUnit.prediction(predictionUnitInput)
-                        print("Prediction: " + str(predictionAfter))
+                        #print("Prediction: " + str(predictionAfter))
                         #print("Prediction input: " + str(predictionUnitInput))
                         #for gvf in self.gvfs:
                         #    print(" - name: " + str(gvf.name))
@@ -191,7 +200,7 @@ class RLGenerateAndTest:
         print("Done")
 
 
-rl = RLGenerateAndTest()
+rl = RLGenerateAndTestGVF()
 rl.runExperiment()
 
 #testLearning(10)
