@@ -199,7 +199,7 @@ class RLGenerateAndTest:
                 if((observationNumber+1) % 5000  == 0):
                     if cullingCount == 0:
                         numberToReplace = 4
-                    self.replaceWeakestGVFs(numberToReplace)
+                    #self.replaceWeakestGVFs(numberToReplace)
                     #print("!! Replacing " + str(numberToReplace) + " GVFs")
                     cullingCount = cullingCount + 1
 
