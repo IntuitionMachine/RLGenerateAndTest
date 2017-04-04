@@ -1,7 +1,7 @@
 # Abstract
-General value functions (GVFs) have proven to be effective in answering predictive questions about the future. However, simply answering a single predictive question has limited utility. Others have demonstrated further utility by using these GVFs to dynamically compose more abstract questions \cite{representingknowledge}, or to optimize control \cite{modayil2014prediction}. In other words, to feed the prediction back into the system. But these demonstrations have relied on a static set of GVFs, handcrafted by a human designer.
+General value functions (GVFs) have proven to be effective in answering predictive questions about the future. However, simply answering a single predictive question has limited utility. Others have demonstrated further utility by using these GVFs to dynamically compose more abstract questions, or to [optimize control](http://www.aaai.org/ocs/index.php/WS/AAAIW14/paper/view/8740). In other words, to feed the prediction back into the system. But these demonstrations have relied on a static set of GVFs, handcrafted by a human designer.
 
-In this paper, we look to extend the Horde architecture \cite{sutton2011horde} to not only feed the GVFs back into the system, but to do so dynamically. In doing so, we explore ways to control the lifecycle of GVFs contained in a Horde - mainly to create, test, cull, and recreate GVFs, in an attempt to maximize some objective.
+In this paper, we look to extend the [Horde](https://www.cs.swarthmore.edu/~meeden/DevelopmentalRobotics/horde1.pdf) architecture  to not only feed the GVFs back into the system, but to do so dynamically. In doing so, we explore ways to control the lifecycle of GVFs contained in a Horde - mainly to create, test, cull, and recreate GVFs, in an attempt to maximize some objective.
 \end{abstract}
     
 ## Background
@@ -13,11 +13,11 @@ GVFs defined this way have demonstrated a compact way to express knowledge. But 
 
 One fairly intuitive vision of how these GVFs may integrate with the reset of a learning system, is that they form a rich ecosystem of integrated GVFs. Each GVF may feed into another, to create topologies of GVFs. Lower level GVFs are the input into other higher level GVFs which answer more abstract questions, or optimize the control of the agent. One could imagine a networked ecosystem of tens of thousands of GVFs, The strongest, most useful GVFs continue to survive, while the useless and week ones are recycled for new candidate GVFs. The resulting GVF network would be helping more accurately and efficiently predict higher level questions, or optimizing control.
 
-An ecosystem of GVFs is not only intuitively promising, but also demonstrably useful. Mark Ring's thought experiments \cite{representingknowledge} clearly articulate how lower level GVFs based on raw sensorimotor data could be used to create more abstract GVFs. 
+An ecosystem of GVFs is not only intuitively promising, but also demonstrably useful. Mark Ring's thought experiments clearly articulate how lower level GVFs based on raw sensorimotor data could be used to create more abstract GVFs. 
 
-Litman and Sutton demonstrated that predictive representation of state can be effective in partially observable Markov decision processes \cite{littman2002predictive}. And Sutton and Pilarski demonstrated an ability to create tens of thousands of GVFs (demons) making predictions in parallel \cite{sutton2011horde}. Therefore, such a system of dynamic GVFs seems very attainable. 
+Litman and Sutton demonstrated that [predictive representation of state](https://web.eecs.umich.edu/~baveja/Papers/psr.pdf) can be effective in partially observable Markov decision processes. And Sutton and Pilarski demonstrated an ability to create tens of thousands of GVFs (demons) making predictions in parallel. Therefore, such a system of dynamic GVFs seems very attainable. 
 
-There are obviously several challenges and questions remaining before building such a system. What actually makes a ``good'' GVF? How do you test and measure this ``goodness?'' How do you create GVFs dynamically in an optimal way? Which GVFs should should be destroyed? And when?
+There are obviously several challenges and questions remaining before building such a system. What actually makes a ``good'' GVF? How do you test and measure this "goodness?" How do you create GVFs dynamically in an optimal way? Which GVFs should should be destroyed? And when?
 
 We look to start answering these GVF lifecycle questions in this research project.
 
@@ -37,21 +37,12 @@ For each of these questions, we examined and measured a few alternative approach
 ### Dynamixel setup
 For our experimental setup, we used a single Dynamixel AX-12 servo that rotated back and forth, producing an encoder position and speed at a 10Hz frequency. At any point, the actuators encoder position will be between 510 and 1023 and either moving left or right. A simple form of course coding was used to approximate these states. The encoder space was divided into 10 different buckets, and for each, the actuator may be moving left or right. Therefore, the states are approximated by a vector of 20 bits where each element is 0 except for the active state. 
 
-
-\begin{figure}[H]
-  \centerline{\includegraphics[width=0.5\textwidth]{Images/DynamixelFeatures.png}}
-  \caption{Dynamixel state representation.}
-  \label{fig:dynamixel}
-\end{figure}
+![alt text](Documentation/Writeup/Images/DynamixelFeatures.png "Dynamixel setup")
 
 ### Feature representation and GVF layers
 At each timestep, a feature representation is generated from the sensorimotor information as described above. This forms a vector of bits with a length of 20. In addition to these legitimate 20 bits, we add 20 bits of ```noise,'' where the value is randomly either 0 or 1. Therefor, each state is represented by a vector 40 bits in length. The first 20 bits contain information that can be learned, while the last 20 bits are purely noise. 
 
-\begin{figure}[H]
-  \centerline{\includegraphics[width=\linewidth]{Images/ExperimentSetup.png}}
-  \caption{Experimental setup}
-  \label{fig:experiment}
-\end{figure}
+![alt text](Documentation/Writeup/Images/ExperimentSetup.png "design")
 
 These features X are input into a layer of 20 GVFs. Each GVF is configured in such a way as to predict what the next bit will be for one of the 40 bits in the feature vector. Throughout a GVFs lifetime, it continues to predict the same bit. This is done by setting $\gamma$ = 0.0, and setting the cumulant to be one of the bits from the feature vector. It is easy to see that if the GVFs were chosen wisely, there would be one GVF for each bit containing information. However, in our setup, given that the GVF layer is unaware of which bits are noise and which are not, there is no obvious way for the system to select bits containing information.
 
@@ -110,11 +101,7 @@ Using this basic setup and algorithm, our intention is to conduct a number of ex
 
 Since we know the ideal set of GVFs, we are able to measure the optimal performance of our system by manually locking in the 20 GVFs that we know represent predictions for the 20 bits actually containing information. Therefor, each of our different approaches to dynamically creating 20 GVFs can be measured against this optimal performance.
 
-\begin{figure}[H]
-  \centerline{\includegraphics[width = \linewidth]{Plots/AverageErrorBestPossibleWith20RealGVFS.png}}
-  \caption{Best possible learning rate with ideal 20 GVFs. Averaged across 1000 runs}
-  \label{fig:ideal}
-\end{figure}
+![alt text](Documentation/Writeup/Plots/AverageErrorBestPossibleWith20RealGVFS.png "Optimal")
 
 ### Experiment 1 - Never replace any GVFs
 The first experiment conducted is to measure the performance of a system that initalizes 20 random GVFs but does not change them over time. In other words, no further culling and replacing takes place.  
@@ -123,22 +110,13 @@ The first experiment conducted is to measure the performance of a system that in
 
 The error decreases quickly, as there are some states which are able to make accurate predictions. However, No further reduction in error is seen over time. 
 
-\begin{figure}[H]
-  \centerline{\includegraphics[width = \linewidth]{Plots/AverageErrorNoKulling.png}}
-  \caption{Results without any GVF culling. Averaged across 1000 runs}
-  \label{fig:experiment}
-\end{figure}
+![alt text](Documentation/Writeup/Plots/AverageErrorNoKulling.png "Optimal")
 
 ### Experiment 2 - Randomly replace GVF every 5000 time steps
 For this experiment, at every 5000 timesteps, we replace the weakest performing GVF (as measured by the one with the smallest absolute value weight) with a randomly chosen GVF. This newly selected GVF could be predicting something exactly the same as a current or past GVF. The intuition behind using the weights as an indicator for a GVFs utility is fairly straight forward. If a GVFs corresponding weight is low, it means it's input value is not factored into the higher level prediction, and therefor not all that useful to the prediction. 
 
 ### Results
-
-\begin{figure}[H]
-  \centerline{\includegraphics[width = \linewidth]{Plots/AverageErrorKullEvery5000ReplaceRandomIncludingRepeats.png}}
-  \caption{Cull every 5000 time steps and replace with random GVFs. Averaged across 1000 runs}
-  \label{fig:experiment}
-\end{figure}	
+![alt text](Documentation/Writeup/Plots/AverageErrorKullEvery5000ReplaceRandomIncludingRepeats.png "Optimal")
 
 As seen, the average error takes a significant dip as the initial GVFs are learned, and then steadily decreases over the lifetime of the horde as more proper GVFs are created. 
 
@@ -148,11 +126,8 @@ This experiment was exactly the same as Experiment 2 above with one difference. 
 ### Results
 The learning rate was faster than when choosing random, possibly repeating GVFs 
 
-\begin{figure}[H]
-  \centerline{\includegraphics[width = \linewidth]{Plots/AverageErrorKullEvery500011000Steps1000Runs.png}}
-  \caption{Cull every 5000 time steps and replace with novel GVFs. Averaged across 1000 runs}
-  \label{fig:experiment}
-\end{figure}
+![alt text](Documentation/Writeup/Plots/AverageErrorKullEvery500011000Steps1000Runs.png "Optimal")
+
 
 ## Conclusions
 The main contribution of this paper is a demonstration that an organic Horde can indeed improve the performance of an intelligent agent by generating, testing, and regenerating GVFs in some computational way. Although the strategies were simple, we showed different rates of learning depending on when to cull, and what to replace with. This is encouraging since others have demonstrated the power and utility of GVFs, and a more organic Horde not only removes a human designer, but makes the system robust in non stationary environments. 
