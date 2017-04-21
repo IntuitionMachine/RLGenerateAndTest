@@ -141,7 +141,15 @@ class RLGenerateAndTest:
         #70% chance of being a 0
         X[self.numberOfRealFeatures:] = numpy.random.choice(a=[0, 1], p=[0.8, 0.2], size = self.numberOfNoisyFeatures)
         return X
-        
+    
+    def outputFromGVFs(self, X):
+        outputs = numpy.zeros(len(self.gvfs))
+        for i in range(len(self.gvfs)):
+            gvf = self.gvfs[i]
+            prediction = gvf.prediction(X)
+            outputs[i] = prediction
+        return outputs        
+
     def thresholdOutputFromGVFs(self, X):
         thresholdOutputs = numpy.zeros(len(self.gvfs))
         for i in range(len(self.gvfs)):
@@ -177,10 +185,12 @@ class RLGenerateAndTest:
                 if self.previousValue:
                     self.updateGVFs(self.previousX, X)
                     # Have the prediction Unit learn
-                    predictionUnitInput = self.thresholdOutputFromGVFs(X)
+                    #predictionUnitInput = self.thresholdOutputFromGVFs(X)
+                    #TODO - Remove after testing non thresholded
+                    predictionUnitInput = self.outputFromGVFs(X)
                     self.predictionUnit.learn(predictionUnitInput, y)
                     prediction = self.predictionUnit.prediction(predictionUnitInput)
-                    error = y - prediction
+                    error =abs(y - prediction)
 
                     observationErrors[observationNumber] = error
                     """
@@ -199,7 +209,7 @@ class RLGenerateAndTest:
                 if((observationNumber+1) % 5000  == 0):
                     if cullingCount == 0:
                         numberToReplace = 4
-                    #self.replaceWeakestGVFs(numberToReplace)
+                    self.replaceWeakestGVFs(numberToReplace)
                     #print("!! Replacing " + str(numberToReplace) + " GVFs")
                     cullingCount = cullingCount + 1
 
