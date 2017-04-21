@@ -56,7 +56,10 @@ class RLGenerateAndTest:
         #initialize a bunch of random GVFs each using a different random bit and random timestep
         gvfs = []
         for i in range(self.numberOfGVFs):
-            gvf = self.initRandomGVF(excludeBitsTried = True)
+            gvf = self.initRandomGVF(excludeBitsTried = False)
+            #TODO - remove after testing
+            #cumulantFunction = self.makeVectorBitCumulantFunction(i)
+            #gvf.cumulant = cumulantFunction
             gvfs.append(gvf)
         return gvfs
             
@@ -108,7 +111,7 @@ class RLGenerateAndTest:
             print("---- Replacing: ")
             for index in indexesToReplace:
                 self.predictionUnit.resetWeight(index)
-                self.gvfs[index] = self.initRandomGVF(excludeBitsTried = True)
+                self.gvfs[index] = self.initRandomGVF(excludeBitsTried = False)
                 print("---- New GVF: " + self.gvfs[index].name)
         
     def updateGVFs(self, previousX, X):
@@ -180,7 +183,7 @@ class RLGenerateAndTest:
                     predictionUnitInput = self.thresholdOutputFromGVFs(X)
                     self.predictionUnit.learn(predictionUnitInput, y)
                     prediction = self.predictionUnit.prediction(predictionUnitInput)
-                    error = y - prediction
+                    error = numpy.abs(y - prediction)
 
                     observationErrors[observationNumber] = error
                     """
@@ -199,12 +202,12 @@ class RLGenerateAndTest:
                 if((observationNumber+1) % 5000  == 0):
                     if cullingCount == 0:
                         numberToReplace = 4
-                    self.replaceWeakestGVFs(numberToReplace)
+                    #self.replaceWeakestGVFs(numberToReplace)
                     #print("!! Replacing " + str(numberToReplace) + " GVFs")
                     cullingCount = cullingCount + 1
 
 
-            averageObservationErrors = averageObservationErrors + (1 / (run + 1)) * observationErrors
+            averageObservationErrors = averageObservationErrors + (1 / (run + 1)) * (observationErrors - averageObservationErrors)
             self.resetForRun()
 
         return averageObservationErrors

@@ -7,6 +7,8 @@
 - Measured RUPEE for predicting "good" bits as well as "noisy" bits.
 --- RUPEE for good bits went quickly to0.13. Then gradually went down to 0.008 after several thousad
 --- RUPEE for noisy bits went to 0.13 quickly as well. But only went down to about 0.06
+- Created AverageErrorKullEvery5000.png showing the error reduce over 100 runs of 90000 timesteps.
+--- Killing 4 after 5000. Killing 1 every 5000 afterwards
 
 ## TODO
 - use Rupee to determine when to kill off GVFs
